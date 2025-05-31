@@ -67,11 +67,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Prayer Times'),
+        title: const Text(
+          'Prayer Times',
+          style: TextStyle(fontWeight: FontWeight.w500),
+        ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.brightness_6),
+            icon: Icon(
+              Theme.of(context).brightness == Brightness.dark
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+            ),
             onPressed: widget.toggleTheme,
           ),
         ],
