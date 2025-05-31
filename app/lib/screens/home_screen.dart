@@ -1,14 +1,17 @@
+import 'package:app/core/constants.dart';
+import 'package:app/widgets/shimmer_card.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/prayer_timings.dart';
 import '../services/prayer_api_service.dart';
 import '../services/location_service.dart';
 import '../services/city_suggestion_service.dart';
-import '../widgets/next_prayer_banner.dart';
 import '../widgets/prayer_time_card.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final VoidCallback toggleTheme;
+
+  const HomeScreen({super.key, required this.toggleTheme});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -63,84 +66,198 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Prayer Times'), centerTitle: true),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+      appBar: AppBar(
+        title: const Text('Prayer Times'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.brightness_6),
+            onPressed: widget.toggleTheme,
+          ),
+        ],
+      ),
+      body: Container(
+        decoration: const BoxDecoration(),
+        child: SingleChildScrollView(
           child: Column(
             children: [
-              Text(
-                today,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
+              if (_timings != null) SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.teal[50],
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            today,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Hijri: ${_timings!.hijriFormatted}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          const Text(
+                            'Next Prayer',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            _timings!.nextPrayer,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
 
-              Autocomplete<String>(
-                optionsBuilder: (TextEditingValue textEditingValue) async {
-                  if (textEditingValue.text.length < 2) {
-                    return const Iterable<String>.empty();
-                  }
-                  await _fetchSuggestions(textEditingValue.text);
-                  return _suggestions;
-                },
-                onSelected: (String selectedCity) {
-                  _cityController.text = selectedCity;
-                  _getPrayerTimes();
-                },
-                fieldViewBuilder: (
-                  context,
-                  controller,
-                  focusNode,
-                  onFieldSubmitted,
-                ) {
-                  _cityController.text = controller.text;
-                  return TextField(
-                    controller: controller,
-                    focusNode: focusNode,
-                    decoration: InputDecoration(
-                      hintText: 'Enter city',
-                      border: OutlineInputBorder(),
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.search),
-                        onPressed: _getPrayerTimes,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+
+                child: Autocomplete<String>(
+                  optionsBuilder: (TextEditingValue textEditingValue) async {
+                    if (textEditingValue.text.length < 2) {
+                      return const Iterable<String>.empty();
+                    }
+                    await _fetchSuggestions(textEditingValue.text);
+                    return _suggestions;
+                  },
+                  onSelected: (String selectedCity) {
+                    _cityController.text = selectedCity;
+                    _getPrayerTimes();
+                  },
+                  fieldViewBuilder: (
+                    context,
+                    controller,
+                    focusNode,
+                    onFieldSubmitted,
+                  ) {
+                    _cityController.text = controller.text;
+
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: primaryColor),
+                        boxShadow: [
+                          // BoxShadow(
+                          //   color: Colors.black.withOpacity(0.05),
+                          //   blurRadius: 8,
+                          //   offset: const Offset(0, 4),
+                          // ),
+                        ],
                       ),
-                    ),
-                  );
-                },
+                      child: TextField(
+                        cursorColor: primaryColor,
+                        controller: controller,
+                        focusNode: focusNode,
+                        onSubmitted: (_) => _getPrayerTimes(),
+                        style: const TextStyle(color: primaryColor),
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(
+                            Icons.location_on_outlined,
+                            color: primaryColor,
+                          ),
+                          hintText: 'Search city...',
+                          hintStyle: const TextStyle(
+                            color: Color.fromARGB(127, 13, 148, 137),
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: const Icon(Icons.search, color: primaryColor),
+                            onPressed: _getPrayerTimes,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
-              const SizedBox(height: 20),
-              if (_isLoading) const CircularProgressIndicator(),
+              const SizedBox(height: 10),
+              Divider(
+                thickness: 1,
+                color: const Color.fromARGB(40, 13, 148, 137),
+              ),
+              const SizedBox(height: 10),
+
+              if (_isLoading)
+                const Column(
+                  children: [
+                    ShimmerCard(),
+                    ShimmerCard(),
+                    ShimmerCard(),
+                    ShimmerCard(),
+                    ShimmerCard(),
+                  ],
+                ),
+
               if (_error != null)
                 Text(_error!, style: const TextStyle(color: Colors.red)),
               if (_timings != null) ...[
-                Text(
-                  'Hijri Date: ${_timings!.hijriFormatted}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+                PrayerTimeCard(
+                  title: 'Fajr',
+                  time: _timings!.fajr,
+                  highlight: _timings!.nextPrayer == 'Fajr',
                 ),
-
-                const SizedBox(height: 12),
-
-                NextPrayerBanner(
-                  prayerTimes: {
-                    'Fajr': _timings!.fajr,
-                    'Dhuhr': _timings!.dhuhr,
-                    'Asr': _timings!.asr,
-                    'Maghrib': _timings!.maghrib,
-                    'Isha': _timings!.isha,
-                  },
+                PrayerTimeCard(
+                  title: 'Dhuhr',
+                  time: _timings!.dhuhr,
+                  highlight: _timings!.nextPrayer == 'Dhuhr',
                 ),
-
-                PrayerTimeCard(title: 'Fajr', time: _timings!.fajr),
-                PrayerTimeCard(title: 'Dhuhr', time: _timings!.dhuhr),
-                PrayerTimeCard(title: 'Asr', time: _timings!.asr),
-                PrayerTimeCard(title: 'Maghrib', time: _timings!.maghrib),
-                PrayerTimeCard(title: 'Isha', time: _timings!.isha),
+                PrayerTimeCard(
+                  title: 'Asr',
+                  time: _timings!.asr,
+                  highlight: _timings!.nextPrayer == 'Asr',
+                ),
+                PrayerTimeCard(
+                  title: 'Maghrib',
+                  time: _timings!.maghrib,
+                  highlight: _timings!.nextPrayer == 'Maghrib',
+                ),
+                PrayerTimeCard(
+                  title: 'Isha',
+                  time: _timings!.isha,
+                  highlight: _timings!.nextPrayer == 'Isha',
+                ),
               ],
             ],
           ),

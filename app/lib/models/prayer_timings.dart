@@ -5,6 +5,7 @@ class PrayerTimings {
   final String maghrib;
   final String isha;
   final String hijriFormatted;
+  final String nextPrayer;
 
   PrayerTimings({
     required this.fajr,
@@ -13,6 +14,7 @@ class PrayerTimings {
     required this.maghrib,
     required this.isha,
     required this.hijriFormatted,
+    required this.nextPrayer,
   });
 
   factory PrayerTimings.fromJson(Map<String, dynamic> json) {
@@ -24,6 +26,23 @@ class PrayerTimings {
     final year = hijri['year'] ?? '';
     final hijriFormatted = "$day $month $year";
 
+    final now = DateTime.now();
+    final timeMap = {
+      'Fajr': _parseTime(timings['Fajr'], now),
+      'Dhuhr': _parseTime(timings['Dhuhr'], now),
+      'Asr': _parseTime(timings['Asr'], now),
+      'Maghrib': _parseTime(timings['Maghrib'], now),
+      'Isha': _parseTime(timings['Isha'], now),
+    };
+
+    String next = 'Fajr'; // Default
+    for (final entry in timeMap.entries) {
+      if (entry.value.isAfter(now)) {
+        next = entry.key;
+        break;
+      }
+    }
+
     return PrayerTimings(
       fajr: timings['Fajr'] ?? '',
       dhuhr: timings['Dhuhr'] ?? '',
@@ -31,6 +50,16 @@ class PrayerTimings {
       maghrib: timings['Maghrib'] ?? '',
       isha: timings['Isha'] ?? '',
       hijriFormatted: hijriFormatted,
+      nextPrayer: next,
     );
+  }
+
+  static DateTime _parseTime(String? timeStr, DateTime now) {
+    if (timeStr == null || !timeStr.contains(':'))
+      return now.add(const Duration(days: 1));
+    final parts = timeStr.split(':');
+    final hour = int.tryParse(parts[0]) ?? 0;
+    final minute = int.tryParse(parts[1]) ?? 0;
+    return DateTime(now.year, now.month, now.day, hour, minute);
   }
 }
