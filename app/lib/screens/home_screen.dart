@@ -1,7 +1,10 @@
-import 'package:app/core/constants.dart';
-import 'package:app/widgets/shimmer_card.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:prayer_times/core/constants.dart';
+import 'package:prayer_times/screens/location_picker_screen.dart';
+import 'package:prayer_times/widgets/shimmer_card.dart';
 import '../models/prayer_timings.dart';
 import '../services/prayer_api_service.dart';
 import '../services/location_service.dart';
@@ -209,9 +212,56 @@ class _HomeScreenState extends State<HomeScreen> {
                             horizontal: 20,
                             vertical: 14,
                           ),
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.search, color: primaryColor),
-                            onPressed: _getPrayerTimes,
+                          suffixIcon: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.location_on_outlined,
+                                  color: Colors.white,
+                                ),
+                                onPressed: () async {
+                                  final LatLng? selected = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (_) => const LocationPickerScreen(),
+                                    ),
+                                  );
+
+                                  if (selected != null) {
+                                    // OPTIONAL: Show loading state
+                                    setState(() {
+                                      _isLoading = true;
+                                    });
+
+                                    // Use reverse geocoding to get city name
+                                    List<Placemark> placemarks =
+                                        await placemarkFromCoordinates(
+                                          selected.latitude,
+                                          selected.longitude,
+                                        );
+
+                                    final cityName =
+                                        placemarks.first.locality ??
+                                        'Unknown City';
+                                    _cityController.text = cityName;
+                                    _getPrayerTimes();
+
+                                    setState(() {
+                                      _isLoading = false;
+                                    });
+                                  }
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.search,
+                                  color: Colors.white,
+                                ),
+                                onPressed: _getPrayerTimes,
+                              ),
+                            ],
                           ),
                         ),
                       ),

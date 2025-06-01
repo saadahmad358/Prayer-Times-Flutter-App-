@@ -1,13 +1,18 @@
-import 'package:app/core/constants.dart';
-import 'package:app/screens/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:prayer_times/core/constants.dart';
+import 'package:prayer_times/screens/home_screen.dart';
+import 'package:prayer_times/services/notification_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.initialize(); // ✅ Add this line
+
   runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
   @override
   State<MyApp> createState() => _MyAppState();
 }
@@ -47,7 +52,6 @@ class _MyAppState extends State<MyApp> {
         ),
         textTheme: const TextTheme(bodyMedium: TextStyle(color: Colors.black)),
       ),
-
       home: HomeScreen(toggleTheme: toggleTheme),
     );
   }

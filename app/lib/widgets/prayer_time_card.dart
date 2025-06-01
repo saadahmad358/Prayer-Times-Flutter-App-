@@ -1,5 +1,5 @@
-import 'package:app/core/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:prayer_times/core/constants.dart';
 
 class PrayerTimeCard extends StatelessWidget {
   final String title;
